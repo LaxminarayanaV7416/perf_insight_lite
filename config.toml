@@ -1,0 +1,4 @@
+is_root = true # 1 means true, 0 means false
+heartbeat = "100" # in hz 
+
+[proc_root_folders]

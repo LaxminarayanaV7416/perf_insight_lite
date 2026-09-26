@@ -1,7 +1,29 @@
+[workspace]
+resolver = "3"
+members = ["proc-parser"]
+
 [package]
 name = "perf_insight_lite"
 version = "0.1.0"
 edition = "2024"
 
+[workspace.dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+
+[build]
+rustflags = ["-C", "target-cpu=native"]
+
+[profile.dev]
+debug = true
+opt-level = 3
+
+[profile.release]
+debug = true
+opt-level = 3
+
 [dependencies]
+proc-parser = { path = "./proc-parser" }
+serde = { workspace = true }
+basic-toml = "0.1.10"
+libc = "0.2.189"
 signal-hook = "0.4.4"

@@ -1,75 +1,66 @@
-mod constants;
-mod proc_collector {
-    pub mod pid_tree;
-}
+mod toml_parser;
 mod utils;
 
-use constants::PROC_ROOT_PATH;
-use proc_collector::pid_tree::PidNode;
+use libc;
+use proc_parser::{Parsers, ProcFilePIDStat};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
 use std::sync::atomic::Ordering;
+use std::time::Duration;
+use toml_parser::PROC_ROOT_PATH;
 use utils::signal_handler;
 
-fn get_ppid(pid: u32, proc_path: &Path) -> u32 {
-    let status_path = proc_path.join(pid.to_string()).join("status");
-    let status = fs::read_to_string(status_path).unwrap_or_default();
-    let ppid = status
-        .lines()
-        .find(|l| l.starts_with("PPid:"))
-        .map(|l| l.split_whitespace().nth(1).unwrap_or_default())
-        .and_then(|g| g.parse::<u32>().ok())
-        .unwrap_or_default();
-    ppid
-}
-
-fn get_pid_command(pid: u32, proc_path: &Path) -> String {
-    let cmdline_path = proc_path.join(pid.to_string()).join("cmdline");
-    let cmdline = fs::read_to_string(cmdline_path).unwrap_or_default();
-    cmdline.replace('\0', " ")
-}
-
-fn get_pid_comm(pid: u32, proc_path: &Path) -> String {
-    let cmdline_path = proc_path.join(pid.to_string()).join("comm");
-    let cmdline = fs::read_to_string(cmdline_path).unwrap_or_default();
-    cmdline.trim().to_string()
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
+    let is_root = unsafe { libc::getuid() == 0 };
+    println!("is_root: {}", is_root);
+
     let signal_hook = signal_handler();
     let proc_path = Path::new(PROC_ROOT_PATH);
+    let mut pid_map: HashMap<u32, ProcFilePIDStat> = HashMap::new();
+    for entry in fs::read_dir(proc_path).into_iter().flatten().flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let pid: Option<u32> = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .and_then(|s| s.parse::<u32>().ok());
+        let pid_val = match pid {
+            Some(v) => v,
+            None => continue,
+        };
+        let pid_path = proc_path.join(pid_val.to_string()).join("status");
+        let cmdline = ProcFilePIDStat::new(&pid_path.to_str().unwrap());
+        if cmdline.is_none() {
+            continue;
+        }
+        pid_map.insert(pid_val, cmdline.unwrap());
+    }
 
-    // assume that we are having a ppid 0 from the start
-    let ppid_child: Vec<PidNode> = Vec::new();
-    let mut root = PidNode::new(0, "".to_string(), "".to_string(), ppid_child);
+    // form the keys array from pid_map keys
+    let keys: Vec<u32> = pid_map.keys().cloned().collect();
     while !signal_hook.load(Ordering::Relaxed) {
-        for entry in fs::read_dir(proc_path).into_iter().flatten().flatten() {
-            let path = entry.path();
-            if !path.is_dir() {
-                continue;
-            }
-            let pid: Option<u32> = path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .and_then(|s| s.parse::<u32>().ok());
-            let pid_val = match pid {
-                Some(v) => v,
-                None => continue,
-            };
-            let ppid = get_ppid(pid_val, &proc_path);
-            let cmdline = get_pid_command(pid_val, &proc_path);
-            let comm = get_pid_comm(pid_val, &proc_path);
-            let children: Vec<PidNode> = Vec::new();
-
-            if root.find(ppid) {
-                root.find_and_add_child(ppid, pid_val, &comm, &cmdline, &children);
+        for key in keys.iter() {
+            if *key == 1781 {
+                let cmdline = pid_map.get_mut(&key).unwrap();
+                let mut lines: [usize; 5] = [0; 5];
+                let mut spaces: [usize; 40] = [0; 40];
+                cmdline.read();
+                // let parens = cmdline.parse_string(5, 19);
+                cmdline.parse_newlines(&mut lines);
+                cmdline.parse_spaces(&mut spaces);
+                println!("Spaces: {:?} ,lines: {:?}", spaces, lines);
+                let data = cmdline.parse_bytes();
+                println!("data: {:?}", data);
+                // println!("{:?}", cmdline.buffer);
             }
         }
+        // break;
+        std::thread::sleep(Duration::from_millis(1));
     }
-    root.print(None, 0);
-    // root.remove_child(2);
-    // root.print(None, 0);
 
     Ok(())
 }
