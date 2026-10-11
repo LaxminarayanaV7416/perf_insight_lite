@@ -1,3 +1,5 @@
+use super::config::ProcFSConfig;
+use super::config::ProcFSConfigTrait;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -5,7 +7,7 @@ use std::collections::HashMap;
 // its from the /proc/<PID>/statm
 
 #[derive(Debug, Default, Deserialize)]
-pub struct ProcPidfsStatmConfig {
+pub struct ProcPidfsStatmConfigFields {
     pub size: bool,
     pub resident: bool,
     pub shared: bool,
@@ -15,16 +17,33 @@ pub struct ProcPidfsStatmConfig {
     pub dirty: bool,
 }
 
-impl ProcPidfsStatmConfig {
-    pub fn get_hashmap(&self) -> HashMap<usize, bool> {
+pub type ProcPidfsStatmConfig = ProcFSConfig<ProcPidfsStatmConfigFields>;
+
+impl ProcFSConfigTrait for ProcPidfsStatmConfig {
+    fn get_hashmap(&self) -> HashMap<usize, bool> {
         HashMap::from([
-            (1, self.size),
-            (2, self.resident),
-            (3, self.shared),
-            (4, self.text),
-            (5, self.lib),
-            (6, self.data),
-            (7, self.dirty),
+            (1, self.fields.size),
+            (2, self.fields.resident),
+            (3, self.fields.shared),
+            (4, self.fields.text),
+            (5, self.fields.lib),
+            (6, self.fields.data),
+            (7, self.fields.dirty),
         ])
+    }
+
+    fn get_field_string_to_struct_ids(&self) -> HashMap<&'static str, (usize, bool)> {
+        HashMap::new()
+    }
+
+    fn is_enabled(&self) -> bool {
+        self.allow
+            & self.fields.size
+            & self.fields.resident
+            & self.fields.shared
+            & self.fields.text
+            & self.fields.lib
+            & self.fields.data
+            & self.fields.dirty
     }
 }

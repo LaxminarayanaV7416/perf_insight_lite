@@ -1,6 +1,10 @@
 use super::procfs_diskstats_config::ProcDiskStatsConfig;
 use super::procfs_loadavg_config::ProcLoadAvgConfig;
 use super::procfs_meminfo_config::ProcMemInfoConfig;
+use super::procfs_pidfs_schedstat_config::ProcPidfsSchedstatConfig;
+use super::procfs_pidfs_stat_config::ProcPidfsStatConfig;
+use super::procfs_pidfs_statm_config::ProcPidfsStatmConfig;
+use super::procfs_pidfs_status_config::ProcPIDStatusConfig;
 use super::procfs_pressure_config::ProcPressureConfig;
 use super::procfs_stat_config::ProcStatConfig;
 use super::procfs_uptime_config::ProcUptimeConfig;
@@ -38,7 +42,7 @@ pub struct ProcFS {
     pub meminfo: ProcMemInfoConfig,
     pub diskstats: ProcDiskStatsConfig,
     pub pressure: ProcFSPressure,
-    // pub pid: ProcFSPID,
+    pub pid: ProcFSPID,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -51,7 +55,8 @@ pub struct ProcFSPressure {
 
 #[derive(Debug, Default, Deserialize)]
 pub struct ProcFSPID {
-    // pub schedstat: ProcFSConfig<T>,
-    // pub stat: ProcFSConfig<T>,
-    // pub uptime: ProcFSConfig<T>,
+    pub schedstat: ProcPidfsSchedstatConfig,
+    pub stat: ProcPidfsStatConfig,
+    pub statm: ProcPidfsStatmConfig,
+    pub status: ProcPIDStatusConfig,
 }

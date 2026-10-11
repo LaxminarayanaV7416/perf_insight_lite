@@ -1,6 +1,6 @@
 thread_pool_count = 10
-heart_beat = 1000
-debug = true
+heart_beat = 100
+debug = false
 
 # ------- /proc/vmstat -------------
 [procfs.vmstat]
@@ -398,3 +398,154 @@ full_avg_10 = true
 full_avg_60 = true
 full_avg_300 = true
 full_total  = true
+
+# ------- /proc/<PID>/schedstat ---------
+[procfs.pid.schedstat]
+allow = true
+heart_beat = 100
+
+[procfs.pid.schedstat.fields]
+time_on_cpu = true
+time_waiting = true
+timeslices_run_count = true
+
+# -------- /proc/<PID>/stat ----------
+[procfs.pid.stat]
+allow = true
+heart_beat = 100
+
+[procfs.pid.stat.fields]
+pid = true
+comm = true
+state = true
+ppid = true
+pgrp = true
+session = true
+tty_nr = true
+tpgid = true
+flags = true
+minflt = true
+cminflt = true
+majflt = true
+cmajflt = true
+utime = true
+stime = true
+cutime = true
+cstime = true
+priority = true
+nice = true
+num_threads = true
+itrealvalue = true
+starttime = true
+vsize = true
+rss = true
+rsslim = true
+startcode = true
+endcode = true
+startstack = true
+kstkesp = true
+kstkeip = true
+signal = true
+blocked = true
+sigignore = true
+sigcatch = true
+wchan = true
+nswap = true
+cnswap = true
+exit_signal = true
+processor = true
+rt_priority = true
+policy = true
+delayacct_blkio_ticks = true
+guest_time = true
+cguest_time = true
+start_data = true
+end_data = true
+start_brk = true
+arg_start = true
+arg_end = true
+env_start = true
+env_end = true
+exit_code = true
+
+# -------- /proc/<PID>/status ----------
+[procfs.pid.status]
+allow = true
+heart_beat = 100
+
+[procfs.pid.status.fields]
+Name = true
+Umask = true
+State = true
+Tgid = true
+Ngid = true
+Pid = true
+PPid = true
+TracerPid = true
+Uid = true
+Gid = true
+FDSize = true
+Groups = true
+NStgid = true
+NSpid = true
+NSpgid = true
+NSsid = true
+Kthread = true
+VmPeak = true
+VmSize = true
+VmLck = true
+VmPin = true
+VmHWM = true
+VmRSS = true
+RssAnon = true
+RssFile = true
+RssShmem = true
+VmData = true
+VmStk = true
+VmExe = true
+VmLib = true
+VmPTE = true
+VmSwap = true
+HugetlbPages = true
+CoreDumping = true
+THP_enabled = true
+untag_mask = true
+Threads = true
+SigQ = true
+SigPnd = true
+ShdPnd = true
+SigBlk = true
+SigIgn = true
+SigCgt = true
+CapInh = true
+CapPrm = true
+CapEff = true
+CapBnd = true
+CapAmb = true
+NoNewPrivs = true
+Seccomp = true
+Seccomp_filters = true
+Speculation_Store_Bypass = true
+SpeculationIndirectBranch = true
+Cpus_allowed = true
+Cpus_allowed_list = true
+Mems_allowed = true
+Mems_allowed_list = true
+voluntary_ctxt_switches = true
+nonvoluntary_ctxt_switches = true
+x86_Thread_features = true
+x86_Thread_features_locked = true
+
+# -------- /proc/<PID>/statm ----------
+[procfs.pid.statm]
+allow = true
+heart_beat = 100
+
+[procfs.pid.statm.fields]
+size = true
+resident = true
+shared = true
+text = true
+lib = true
+data = true
+dirty = true
